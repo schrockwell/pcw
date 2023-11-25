@@ -6,7 +6,7 @@ import (
 
 type KeyUp struct {
 	Header    Header
-	Timestamp Microseconds
+	Timestamp uint32
 }
 
 func (p *KeyUp) Bytes() ([]byte, error) {
@@ -29,6 +29,6 @@ func DecodeKeyUp(h Header, pb []byte) (Packet, error) {
 
 	return &KeyUp{
 		Header:    h,
-		Timestamp: Microseconds(binary.BigEndian.Uint32(pb[0:4])),
+		Timestamp: binary.BigEndian.Uint32(pb[0:4]),
 	}, nil
 }

@@ -23,7 +23,6 @@ func TestBytes(t *testing.T) {
 
 func TestDecode(t *testing.T) {
 	b := []byte{0, 1, 2, 0x12, 0x34, 0x56, 0x78}
-
 	p := test.TestPacketDecode(t, b, pcw.DecodeKeyUp).(*pcw.KeyUp)
 
 	test.TestHeader(t, p.Header, pcw.Header{
