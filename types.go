@@ -7,12 +7,8 @@ type Microseconds uint32 // microseconds
 
 // Interfaces
 
-type Encoder interface {
-	Bytes() ([]byte, error)
-}
-
 type Packet interface {
-	Encoder
+	Bytes() ([]byte, error)
 }
 
 // Functions

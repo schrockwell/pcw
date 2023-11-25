@@ -6,8 +6,8 @@ import (
 	"testing"
 )
 
-func TestPacketBytes(t *testing.T, e pcw.Encoder) ([]byte, []byte) {
-	b, err := e.Bytes()
+func TestPacketBytes(t *testing.T, p pcw.Packet) ([]byte, []byte) {
+	b, err := p.Bytes()
 	if err != nil {
 		t.Fatal(err)
 	}
