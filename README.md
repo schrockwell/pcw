@@ -1,4 +1,4 @@
-# Packetized CW (PCW) Protocol
+# Packetized Keying Protocol (PKP)
 
 This is a work in progress! Nothing is finalized yet.
 
@@ -15,6 +15,8 @@ This is a work in progress! Nothing is finalized yet.
 2. **Simple encoding** - PCW is designed to be easy to encode and decode, requiring only basic byte manipulation, which is readily achievable by any microcontroller or software.
 
 3. **Small** - Packets are extremely compact and should fit within the payload of a single UDP packet.
+
+4. **Not just for CW** - Keying applies to many aspects of radio beyond Morse code. For example, push-to-talk (PTT), radioteletype (RTTY), and generic relay controls are also supported use-cases.
 
 ## Discussion
 
