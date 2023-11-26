@@ -25,7 +25,6 @@ An entire PCW packet SHOULD fit within the payload of a single UDP packet. The u
 All mutli-byte values use big-endian (network) byte order.
 
 - uint8 - unsigned 8-bit integer
-- uint16 - unsigned 16-bit integer
 - uint32 - unsigned 32-bit integer
 
 # Header
@@ -153,9 +152,7 @@ Send by: server only
 
 Responds to a RTT measurement.
 
-The client MAY compare the timestamp of the Pong packet to its current clock to determine the round-trip time (RTT) between the client and the server.
-
-The client MAY use the RTT measurement to determine network jitter, and adjust the jitter buffer accordingly by sending the Set Jitter Buffer packet.
+The client SHOULD compare the timestamp of the Pong packet to its current clock to determine the round-trip time (RTT) between the client and the server.
 
 ## Missed (0x07)
 
@@ -173,17 +170,7 @@ Indicates that a keying packet arrived too late.
 
 The server MUST send this packet if the timestamp of a transition packet was received, but it was too late to be scheduled for future transmission.
 
-The client MAY use this information to determine that the remote jitter buffer is too short, and subsequently send a Set Jitter Buffer packet to increase the buffer.
-
-## Set Jitter Buffer (0x09)
-
-Sent by: client only
-
-Sets the server jitter buffer.
-
-The client MUST begin its next transition packet with a timestamp of 0.
-
-## Application Data (0x0A)
+## Application Data (0x09)
 
 Sent by: client or server
 

@@ -14,8 +14,7 @@ const (
 	PacketTypePong               PacketType = 0x06
 	PacketTypeMissed             PacketType = 0x07
 	PacketTypeDropped            PacketType = 0x08
-	PacketTypeSetJitterBuffer    PacketType = 0x09
-	PacketTypeApplicationControl PacketType = 0x0A
+	PacketTypeApplicationControl PacketType = 0x09
 )
 
 // Interfaces
