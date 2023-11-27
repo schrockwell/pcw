@@ -18,6 +18,8 @@ This is a work in progress! Nothing is finalized yet.
 
 4. **Not just for CW** - Keying applies to many aspects of radio beyond Morse code. For example, push-to-talk (PTT), radioteletype (RTTY), and generic relay controls are also supported use-cases.
 
+5. **Backwards-compatible** - Additions can be made to the protocol without breaking existing implementations.
+
 ## Discussion
 
 ### Latency and jitter

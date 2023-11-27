@@ -17,6 +17,7 @@ All packet types and fields are introduced in specification version 1, unless ot
 - **Timestamp** - a monotonically-increasing uint32 with microsecond precision
 - **Timed Packet** - a packet containing a Timestamp field (Key Up, Key Down, or Element packet types)
 - **Sync** - a timestamp of 0, indicating that timestamps of upcoming Timed Packets should be measured relative to the time that the Sync was received by the server
+- **Channel** - a value from 0 to 127 representing a line to be keyed
 
 # Field Types
 
@@ -42,19 +43,19 @@ An entire PKP packet SHOULD fit within the payload of a single UDP packet. The u
 
 The header is composed of the following fields:
 
-1. **Header Length (uint8)** - The number of bytes to follow which will comprise the header. Currently this is 5 bytes, but it may increase in the future as header fields are added.
+1. **Header Length (uint8)** - The number of bytes to follow which will comprise the header. Currently this is 5 bytes, but it may increase in future protocol versions as header fields are added.
 
-2. **Payload Length (uint16)** - The number of bytes after the header, which will comprise the payload.
+2. **Payload Length (uint16)** - The number of bytes after the header, which comprise the payload.
 
-3. **Packet Type (uint8)** - One of the predefined packet types
+3. **Packet Type (uint8)** - One of the predefined packet types, which describes the contents of the payload.
 
 4. **Sequence Number (uint8)** - The sequence number MUST be incremented by one for every packet sent, wrapping around from 255 to 0. The sequence number SHOULD be used to detect if a packet was lost or received out-of-order.
 
-5. **Channel (uint8)** - The channel allows multiple keys to be controlled by a single server. Channel 0 MUST be implemented as the default channel. Channels 1 through 255 MAY be used if additional keys are supported.
+5. **Address (uint8)** - The address allows multiple devices to be controlled by a single server. Address 0 MUST be implemented as the default device. Addresses 1 through 255 MAY be used if additional devices are to be controlled.
 
 ## Header Example
 
-Header length 5 bytes, payload length 4 bytes, payload type 1, sequence number 171, channel 0
+Header length 5 bytes, payload length 4 bytes, payload type 1, sequence number 171, address 0
 
     HEADER                      PAYLOAD
     --------------------------- -------------
@@ -72,21 +73,22 @@ The server MUST reply with a Dropped packet if the timestamp is too late to be q
 
 ### Key Up Fields
 
-1. **Timestamp (uint32)** - A time, in microseconds, when to release the key. The timestamp of 0 MUST be reserved as a synchronization signal. The server and client MUST support accurate timing when the timestamp wraps around from UINT32_MAX to 0.
+1. **Channel (uint8)**
+2. **Timestamp (uint32)**
 
 ### Key Up Examples
 
 Sync
 
     HEADER                      PAYLOAD
-    --------------------------- -------------
-    [05] [00 04] [01] [AB] [00] [00 00 00 00]
+    --------------------------- ------------------
+    [05] [00 04] [01] [AB] [00] [00] [00 00 00 00]
 
 Timestamp 17965876 µs
 
     HEADER                      PAYLOAD
-    --------------------------- -------------
-    [05] [00 04] [01] [AB] [00] [01 12 23 34]
+    --------------------------- ------------------
+    [05] [00 04] [01] [AB] [00] [00] [01 12 23 34]
 
 ## Key Down (0x01)
 
@@ -100,8 +102,8 @@ The server MAY implement a time-out timer (TOT) to forcefully release the key if
 
 ### Key Down Fields
 
-1. Timestamp (uint32)  
-   A time, in microseconds, when to trigger the key. The timestamp of 0 MUST be reserved as a synchronization signal. The server and client MUST support accurate timing when the timestamp wraps around from UINT32_MAX to 0.
+1. **Channel (uint8)**
+2. **Timestamp (uint32)**
 
 ## Element (0x02)
 
@@ -111,17 +113,29 @@ Engages the remote key for a specified duration.
 
 The server MUST reply with a Dropped packet if the timestamp is too late to be queued up for future playing.
 
+### Element Fields
+
+1. **Channel (uint8)**
+2. **Timestamp (uint32)**
+3. **Duration (uint32)**
+
 ## Characters (0x03)
 
 Sent by: client only
 
 Enqueues characters for CW generation at the server.
 
-The characters MUST be encoded as ASCII (TODO: which ISO??).
+The characters MUST be encoded as Latin-1 per [ISO 8859-1](https://en.wikipedia.org/wiki/ISO/IEC_8859-1).
 
 The characters MAY be sent to any destination that can recreate the Morse representation of those characters, such as a radio, WinKeyer serial device, or software. Devices MAY interpret characters in special ways, such as for custom spacing or prosigns.
 
 The server MAY ignore the packet if there is no applicable device to recreate the Morse code.
+
+### Characters Fields
+
+1. **Channel (uint8)**
+2. **Length (uint8)**
+3. **Characters (uint8 array)**
 
 ## WinKeyer Command (0x04)
 
@@ -136,6 +150,12 @@ The server MAY forward these commands directly to a WinKeyer device.
 In the absence of a WinKeyer device, the server MAY interpret the commands to control alternative hardware or software keying. For example, the server could handle the WinKey "Set WPM Speed" command to set the WPM of a radio using the radio's command protocol.
 
 The server MAY ignore the packet if there is no applicable device to handle the particular command.
+
+### WinKeyer Command Fields
+
+1. **Channel (uint8)**
+2. **Length (uint8)**
+3. **Command Data (uint8 array)**
 
 ## WinKeyer Status (TODO)
 
@@ -189,7 +209,7 @@ Sends application-specific data.
 
 The client or server MAY use this packet type to send any custom payload for control or informational purposes that are beyond the scope of the PKP protocol.
 
-## Undefined (0x10 through 0xFF)
+## Undefined (0xTODO through 0xFF)
 
 The device MUST ignore any packet type that it does not implement.
 
@@ -197,7 +217,7 @@ The device MUST ignore any packet type that it does not implement.
 
 Protocol changes SHALL NOT modify the meaning of any existing packet types or fields, and SHALL NOT change the ordering or encoding of existing fields.
 
-Protocol changes MAY add new packet types, and MAY add new fields to existing packet types. New fields SHALL always be appended such that their bytes occur after any existing fields.
+Protocol changes MAY add new packet types, and MAY add new fields to existing packet types. New fields SHALL always be appended such that their bytes occur after any existing fields. Therefore, the lengths of headers and payloads MAY increase in new protocol versions.
 
 In the event that the header length or payload length is longer than the device expects, this indicates the packet contains information from a newer version of the protocol. The device MUST accept the packet and MUST ignore the additional bytes.
 
