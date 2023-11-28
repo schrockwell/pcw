@@ -183,15 +183,15 @@ Send by: server only
 
 Responds to a RTT measurement.
 
-## Missed (0x07)
+## Missing (0x07)
 
 Sent by: server only
 
-Indicates that a packet was never received.
+Indicates that a packet was not received.
 
-The server MUST send this packet if it detects a missing client packet based on the sequence number. The threshold of time after which a packet is considered "missed" is left up to the server implementation.
+The server MUST send this packet if it detects a missing client packet based on the sequence number. The threshold after which a packet is considered "missing" is left up to the server implementation.
 
-The client SHOULD re-send the missed packet.
+The client MAY re-send the missing packet. The server MAY ignore the missing packet if the retransmission arrives too late.
 
 ## Dropped (0x08)
 
