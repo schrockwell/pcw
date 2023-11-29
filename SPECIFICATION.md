@@ -2,7 +2,7 @@
 
 Version 1
 
-Updated 2023-11-26
+Updated 2023-11-29
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119).
 
@@ -15,7 +15,7 @@ All packet types and fields are introduced in specification version 1, unless ot
 - **Client** - a device that takes Morse input from a user and emits PKP packets
 - **Server** - a device that takes in PKP packets and recreates the Morse for RF transmission
 - **Timestamp** - a monotonically-increasing uint32 with microsecond precision
-- **Timed Packet** - a packet containing a Timestamp field (Key Up, Key Down, or Element packet types)
+- **Timed Packet** - a packet containing a Timestamp field (Key Up or Key Down packet types)
 - **Sync** - a timestamp of 0, indicating that timestamps of upcoming Timed Packets should be measured relative to the time that the Sync was received by the server
 - **Channel** - a value from 0 to 127 representing a line to be keyed
 
@@ -55,11 +55,15 @@ The header is composed of the following fields:
 
 ## Header Example
 
-Header length 5 bytes, payload length 4 bytes, payload type 1, sequence number 171, address 0
-
     HEADER                      PAYLOAD
     --------------------------- -------------
     [05] [00 04] [01] [AB] [00] [xx xx xx xx]
+     |      |     |    |    |
+     |      |     |    |    --- address
+     |      |     |    -------- sequence number
+     |      |     ------------- payload type
+     |      ------------------- payload length
+     -------------------------- header length
 
 # Packet Types
 
@@ -69,7 +73,7 @@ Sent by: client only
 
 Releases the remote key.
 
-The server MUST reply with a Dropped packet if the timestamp is too late to be queued up for future playing.
+The server MUST reply with a Late packet if the timestamp is too late to be queued up for future playing.
 
 ### Key Up Fields
 
@@ -96,7 +100,7 @@ Sent by: client only
 
 Engages the remote key.
 
-The server MUST reply with a Dropped packet if the timestamp is too late to be queued up for future playing.
+The server MUST reply with a Late packet if the timestamp is too late to be queued up for future playing.
 
 The server MAY implement a time-out timer (TOT) to forcefully release the key if a Key Up packet is not received after a reasonable duration.
 
@@ -105,21 +109,7 @@ The server MAY implement a time-out timer (TOT) to forcefully release the key if
 1. **Channel (uint8)**
 2. **Timestamp (uint32)**
 
-## Element (0x02)
-
-Sent by: client only
-
-Engages the remote key for a specified duration.
-
-The server MUST reply with a Dropped packet if the timestamp is too late to be queued up for future playing.
-
-### Element Fields
-
-1. **Channel (uint8)**
-2. **Timestamp (uint32)**
-3. **Duration (uint32)**
-
-## Characters (0x03)
+## Characters (0x02)
 
 Sent by: client only
 
@@ -137,7 +127,7 @@ The server MAY ignore the packet if there is no applicable device to recreate th
 2. **Length (uint8)**
 3. **Characters (uint8 array)**
 
-## WinKeyer Command (0x04)
+## WinKeyer Command (0x03)
 
 Sent by: client only
 
@@ -157,11 +147,17 @@ The server MAY ignore the packet if there is no applicable device to handle the 
 2. **Length (uint8)**
 3. **Command Data (uint8 array)**
 
-## WinKeyer Status (TODO)
+## WinKeyer Status (0x04)
 
 Sent by: server only
 
-TODO
+Sends status updates raised by a WinKeyer device.
+
+### WinKeyer Status Fields
+
+1. **Channel (uint8)**
+2. **Length (uint8)**
+3. **Status Data (uint8 array)**
 
 ## Ping (0x05)
 
@@ -193,7 +189,7 @@ The server MUST send this packet if it detects a missing client packet based on 
 
 The client MAY re-send the missing packet. The server MAY ignore the missing packet if the retransmission arrives too late.
 
-## Dropped (0x08)
+## Late (0x08)
 
 Sent by: server only
 
