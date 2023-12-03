@@ -43,9 +43,9 @@ An entire PKP packet SHOULD fit within the payload of a single UDP packet. The u
 
 The header is composed of the following fields:
 
-1. **Header Length (uint8)** - The number of bytes to follow which will comprise the header. Currently this is 5 bytes, but it may increase in future protocol versions as header fields are added.
+1. **Header Size (uint8)** - The number of bytes that comprise the header, including this first byte. Currently this is 6 bytes, but it may increase in future protocol versions as header fields are added.
 
-2. **Payload Length (uint16)** - The number of bytes after the header, which comprise the payload.
+2. **Payload Size (uint8)** - The number of bytes after the header, which comprise the payload.
 
 3. **Packet Type (uint8)** - One of the predefined packet types, which describes the contents of the payload.
 
@@ -55,15 +55,15 @@ The header is composed of the following fields:
 
 ## Header Example
 
-    HEADER                      PAYLOAD
-    --------------------------- -------------
-    [05] [00 04] [01] [AB] [00] [xx xx xx xx]
-     |      |     |    |    |
-     |      |     |    |    --- address
-     |      |     |    -------- sequence number
-     |      |     ------------- payload type
-     |      ------------------- payload length
-     -------------------------- header length
+    HEADER                   PAYLOAD
+    ------------------------ -------------
+    [05] [04] [01] [AB] [00] [xx xx xx xx]
+     |    |    |    |    |
+     |    |    |    |    --- address
+     |    |    |    -------- sequence number
+     |    |    ------------- payload type
+     |    ------------------ payload size
+     ----------------------- header size
 
 # Packet Types
 
@@ -197,17 +197,19 @@ Indicates that a Timed Packet arrived too late.
 
 The server MUST send this packet if a Timed Packet was received too late to be recreated.
 
-## Application Data (0x09)
+## Reserved for PKP (0x09 through 0x7F)
+
+These packet types are reserved for future versions of the protcol.
+
+The device MUST ignore any packet type that it does not implement.
+
+## Reserved for Applications (0x80 through 0xFF)
 
 Sent by: client or server
 
 Sends application-specific data.
 
-The client or server MAY use this packet type to send any custom payload for control or informational purposes that are beyond the scope of the PKP protocol.
-
-## Undefined (0xTODO through 0xFF)
-
-The device MUST ignore any packet type that it does not implement.
+The client or server MAY use these packet types to send custom payloads for control or informational purposes that are beyond the scope of PKP.
 
 # Backwards Compatibility
 
